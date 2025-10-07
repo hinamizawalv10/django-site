@@ -1,8 +1,8 @@
 from django.shortcuts import render
 import datetime
-from django.contrib.auth.decorators import login_required # 1. これを追加
+# from django.contrib.auth.decorators import login_required  ← この行は不要
 
-@login_required # 2. この行を追加
+# @login_required ← この行は不要
 def index(request):
     now = datetime.datetime.now()
     context = {
