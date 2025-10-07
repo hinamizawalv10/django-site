@@ -29,12 +29,14 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-o8h4uhx!t@_0@5s7qt+pd
 # ↓ 変更: Render上では自動的にDEBUGがFalseになるように設定
 DEBUG = 'RENDER' not in os.environ
 
-# ↓ 変更: Renderのドメインを自動的に許可する設定
 ALLOWED_HOSTS = []
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+# ↓ この一行を追加
+ALLOWED_HOSTS.append('maruyama.onrender.com')
 
 
 # Application definition
