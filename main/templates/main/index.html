@@ -2,34 +2,104 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Django Demo</title>
+    <title>丸山</title> <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-
+    <style>
+        #calendar th, #calendar td {
+            text-align: center;
+        }
+    </style>
 </head>
-<body class="bg-light">  <div class="container mt-5">
-        <div class="p-5 mb-4 bg-white rounded-3 shadow-sm">
+<body class="bg-light">
+
+    <div class="container mt-5">
+        <div class="p-5 bg-white rounded-3 shadow-sm">
             <div class="container-fluid py-5">
-                <h1 class="display-5 fw-bold">ようこそ！</h1>
-                <p class="col-md-8 fs-4">これはBootstrapを適用したDjangoのページです。</p>
-                <hr class="my-4">
+                <h1 class="display-5 fw-bold">丸山</h1>
                 
                 <p class="lead">現在の時刻:</p>
-                <p class="display-4" id="realtime-clock">{{ current_time }}</p>
-            </div>
+                <p class="display-4" id="realtime-clock"></p> <hr class="my-4">
+
+                <h2 class="h4">カレンダー</h2>
+                <div id="calendar-container" class="mt-3"></div>
+                </div>
         </div>
     </div>
 
     <script>
+        // --- 時計を動かすためのコード (変更なし) ---
         function updateClock() {
             const now = new Date();
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
             const timeString = `${hours}:${minutes}:${seconds}`;
-            document.getElementById('realtime-clock').textContent = timeString;
+            const clockElement = document.getElementById('realtime-clock');
+            if (clockElement) {
+                clockElement.textContent = timeString;
+            }
         }
         setInterval(updateClock, 1000);
+        updateClock(); // ページ読み込み時にすぐに時刻を表示
+
+        // --- ここからカレンダーを生成するための新しいコード ---
+        function generateCalendar() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth(); // 0-11
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+
+            const monthNames = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+
+            let html = `<h3 class="h5">${year}年 ${monthNames[month]}</h3>`;
+            html += '<table id="calendar" class="table table-bordered">';
+            html += '<thead><tr>';
+            for (let day of days) {
+                html += `<th>${day}</th>`;
+            }
+            html += '</tr></thead><tbody><tr>';
+
+            let date = 1;
+            // 1日までの空白セル
+            for (let i = 0; i < firstDay.getDay(); i++) {
+                html += '<td></td>';
+            }
+            
+            // 日付セル
+            while (date <= lastDay.getDate()) {
+                if (firstDay.getDay() % 7 === 0 && date > 1) {
+                    html += '</tr><tr>';
+                }
+                
+                let cellClass = '';
+                if (date === now.getDate()) {
+                    cellClass = 'table-primary'; // 今日の日付をハイライト
+                }
+                html += `<td class="${cellClass}">${date}</td>`;
+
+                date++;
+                firstDay.setDate(firstDay.getDate() + 1);
+            }
+
+            // 月末以降の空白セル
+            while (firstDay.getDay() % 7 !== 0) {
+                html += '<td></td>';
+                firstDay.setDate(firstDay.getDate() + 1);
+            }
+
+            html += '</tr></tbody></table>';
+            
+            const calendarContainer = document.getElementById('calendar-container');
+            if(calendarContainer) {
+                calendarContainer.innerHTML = html;
+            }
+        }
+        
+        // ページが読み込まれたらカレンダーを生成
+        generateCalendar();
     </script>
 </body>
 </html>
