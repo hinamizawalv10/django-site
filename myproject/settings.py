@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os  # ← 追加
+import dj_database_url # ← 追加
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +22,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-o8h4uhx!t@_0@5s7qt+pdns%s+4uw_^bm+!u2!gj3))ddvhanj'
+# ↓ 変更: Renderの環境変数からSECRET_KEYを読み込む
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-o8h4uhx!t@_0@5s7qt+pdns%s+4uw_^bm+!u2!gj3))ddvhanj')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# ↓ 変更: Render上では自動的にDEBUGがFalseになるように設定
+DEBUG = 'RENDER' not in os.environ
 
+# ↓ 変更: Renderのドメインを自動的に許可する設定
 ALLOWED_HOSTS = []
+
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 
 # Application definition
@@ -37,11 +46,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'main',  
+    'main',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # ← 追加: 静的ファイル配信用
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -73,11 +83,13 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# ↓ 変更: RenderのPostgreSQLデータベースに接続するための設定
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        # ローカルでの開発時は、これまで通りdb.sqlite3をデフォルトで使う設定
+        default='sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3'),
+        conn_max_age=600
+    )
 }
 
 
@@ -103,9 +115,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ja' # ← 'en-us' から 'ja' に変更（推奨）
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Tokyo' # ← 'UTC' から 'Asia/Tokyo' に変更（推奨）
 
 USE_I18N = True
 
@@ -116,6 +128,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+# ↓ 追加: 公開用に静的ファイルを集める場所を指定
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# ↓ 追加: Whitenoise用の設定
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
