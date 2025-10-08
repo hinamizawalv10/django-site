@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>丸山</title> <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <title>お部屋</title> <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
     <style>
         #calendar th, #calendar td {
@@ -18,16 +18,22 @@
                 <h1 class="display-5 fw-bold">丸山</h1>
                 
                 <p class="lead">現在の時刻:</p>
-                <p class="display-4" id="realtime-clock"></p> <hr class="my-4">
+                <p class="display-4" id="realtime-clock"></p>
+
+                <hr class="my-4">
 
                 <h2 class="h4">カレンダー</h2>
                 <div id="calendar-container" class="mt-3"></div>
+
+                <div class="d-grid gap-2 col-8 mx-auto mt-5">
+                    <a href="/tetris/" class="btn btn-primary btn-lg">テトリスをプレイ！</a>
+                </div>
                 </div>
         </div>
     </div>
 
     <script>
-        // --- 時計を動かすためのコード (変更なし) ---
+        // (時計とカレンダーのJavaScriptは省略... 変更ありません)
         function updateClock() {
             const now = new Date();
             const hours = String(now.getHours()).padStart(2, '0');
@@ -40,65 +46,50 @@
             }
         }
         setInterval(updateClock, 1000);
-        updateClock(); // ページ読み込み時にすぐに時刻を表示
+        updateClock();
 
-        // --- ここからカレンダーを生成するための新しいコード ---
         function generateCalendar() {
             const now = new Date();
             const year = now.getFullYear();
-            const month = now.getMonth(); // 0-11
-
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-
+            const month = now.getMonth();
             const monthNames = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
             const days = ['日', '月', '火', '水', '木', '金', '土'];
-
             let html = `<h3 class="h5">${year}年 ${monthNames[month]}</h3>`;
             html += '<table id="calendar" class="table table-bordered">';
             html += '<thead><tr>';
-            for (let day of days) {
-                html += `<th>${day}</th>`;
-            }
-            html += '</tr></thead><tbody><tr>';
-
-            let date = 1;
-            // 1日までの空白セル
-            for (let i = 0; i < firstDay.getDay(); i++) {
-                html += '<td></td>';
-            }
+            days.forEach(day => html += `<th>${day}</th>`);
+            html += '</tr></thead><tbody>';
             
-            // 日付セル
-            while (date <= lastDay.getDate()) {
-                if (firstDay.getDay() % 7 === 0 && date > 1) {
-                    html += '</tr><tr>';
+            const firstDayOfMonth = new Date(year, month, 1);
+            const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
+            const firstDayOfWeek = firstDayOfMonth.getDay();
+            
+            let currentDate = 1;
+            for (let i = 0; i < 6; i++) {
+                html += '<tr>';
+                for (let j = 0; j < 7; j++) {
+                    if (i === 0 && j < firstDayOfWeek) {
+                        html += '<td></td>';
+                    } else if (currentDate > lastDateOfMonth) {
+                        html += '<td></td>';
+                    } else {
+                        let cellClass = (currentDate === now.getDate()) ? 'table-primary' : '';
+                        html += `<td class="${cellClass}">${currentDate}</td>`;
+                        currentDate++;
+                    }
                 }
-                
-                let cellClass = '';
-                if (date === now.getDate()) {
-                    cellClass = 'table-primary'; // 今日の日付をハイライト
+                html += '</tr>';
+                if (currentDate > lastDateOfMonth) {
+                    break;
                 }
-                html += `<td class="${cellClass}">${date}</td>`;
-
-                date++;
-                firstDay.setDate(firstDay.getDate() + 1);
             }
-
-            // 月末以降の空白セル
-            while (firstDay.getDay() % 7 !== 0) {
-                html += '<td></td>';
-                firstDay.setDate(firstDay.getDate() + 1);
-            }
-
-            html += '</tr></tbody></table>';
+            html += '</tbody></table>';
             
             const calendarContainer = document.getElementById('calendar-container');
             if(calendarContainer) {
                 calendarContainer.innerHTML = html;
             }
         }
-        
-        // ページが読み込まれたらカレンダーを生成
         generateCalendar();
     </script>
 </body>
